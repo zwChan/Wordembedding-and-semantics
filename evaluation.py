@@ -135,7 +135,7 @@ def phrase2word(w2v,phrase,strict_match=True):
         t2 = t.strip()
         if len(t2) > 0:
             if t2 in wv.vocab and t2 in evalVocab:
-                term_norm_estimate.append(t)
+                term_norm_estimate.append(t2)
             else:
                 miss |= True
     return term_norm_estimate if strict_match == False or miss == False else []
@@ -151,6 +151,17 @@ def estimate_phrase(w2v,phrase,most_similar_f,topn=1):
     return rel_estimate
 
 
+def safe_phrase(w2v,phrase,most_similar_f):
+    global evalVocab
+    if phrase in w2v.vocab:
+        return [phrase]
+    elif phrase in evalVocab and '_' in phrase:
+        ret = estimate_phrase(w2v,phrase,most_similar_f,topn=1)
+        print("phrase (%s) estimate to (%s)" % (phrase, ret),file=sys.stderr)
+        return ret
+    else:
+        return []
+
 def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
     term_norm = term.relValue[term.NormIndex][0] if len(term.relValue[term.NormIndex]) > 0 else ""
     try:
@@ -158,10 +169,11 @@ def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
             term.similar = most_similar_f(w2v,term_norm,topn=topn,restrict_vocab=restrict_vocab)
     except KeyError as e:
         if '_' in term_norm:
-            term_norm_estimate = phrase2word(w2v,term_norm)
+            term_norm_estimate = safe_phrase(w2v,term_norm,most_similar_f)
             try:
                 if len(term_norm_estimate) > 0:
                     term.similar = most_similar_f(w2v,term_norm_estimate,topn=topn,restrict_vocab=restrict_vocab)
+                    print("phrase %s estimate term is %s\nsimilar: %s" % (term_norm, term_norm_estimate, term.similar), file=sys.stderr)
             except KeyError as e2:
                 print("No one of the words in phrase: %s in" % ('_'.join(term_norm)), file=sys.stderr)
             print("**INFO** term %s not found, use estimate %s, similar terms %s" % (term_norm, term_norm_estimate, term.similar), file=sys.stderr)
@@ -177,10 +189,11 @@ def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
                 if rel in simMap:
                     hitTerms.append(rel)
             elif '_' in rel:  # use the average vector of words in phrase to estimate the phrase
-                rel_estimate = estimate_phrase(w2v,rel,most_similar_f,topn=1)
+                rel_estimate = safe_phrase(w2v,rel,most_similar_f)
                 estimate_hit = []
                 for estimate in rel_estimate:
                     if estimate in simMap:
+                        print("rel %s estimate %s, hit" % (rel,rel_estimate), file=sys.stderr)
                         estimate_hit.append(estimate)
                         hitTerms.append(rel)
                         break  # need only hit one target term.
@@ -215,7 +228,7 @@ def accuracy_rel(w2v, csvfile,most_similar_f, topn=10, restrict_vocab=30000,case
                 rel_term = rel.split(',')
                 for t in rel_term:
                     if len(t.strip()) == 0: continue
-                    if t not in evalVocab:
+                    if t.lower() not in evalVocab:
                         if i == Term.NormIndex :print("%s in term(%s) is ignored record for term caused by not-in-evalVocab " % (t, term.name), file=sys.stderr)
                         continue
                     if usePhrase == False and "_" in t:
@@ -252,6 +265,7 @@ def accuracy_analogy(wv, questions, most_similar, topn=10, case_insensitive=True
     This method corresponds to the `compute-accuracy` script of the original C word2vec.
 
     """
+    global evalVocab
     self=wv
     ok_vocab = self.vocab
     ok_vocab = dict((w.lower(), v) for w, v in ok_vocab.items()) if case_insensitive else ok_vocab
@@ -282,10 +296,10 @@ def accuracy_analogy(wv, questions, most_similar, topn=10, case_insensitive=True
 
             original_vocab = self.vocab
             self.vocab = ok_vocab
-            a2 = phrase2word(wv,a)
-            b2 = phrase2word(wv,b)
-            c2 = phrase2word(wv,c)
-            expected2 = estimate_phrase(wv,expected,most_similar,topn=1) if expected not in ok_vocab else [expected]
+            a2 = safe_phrase(wv,a,most_similar)
+            b2 = safe_phrase(wv,b,most_similar)
+            c2 = safe_phrase(wv,c,most_similar)
+            expected2 = safe_phrase(wv,expected,most_similar)
             if len(a2)==0 or len(b2)==0 or len(c2)==0 or len(expected2)==0:
                 print("skipping line in %s with OOV words: %s" % (section['section'], line.strip()), file=sys.stderr)
                 print(a2,b2,c2,expected2,file=sys.stderr)
@@ -352,6 +366,7 @@ def get_evaluation_vocab(vocFile,otherVocab,isIntersectVacab=False):
 if len(sys.argv) < 5:
     print("Usage: [model-file] [vocab-file] [analogy-file] [relation-file] [top-n] [usePhrase(True|False)] [otherVocab(from the model to compare] [union|intersection] [sample(test)]",file=sys.stderr)
     exit(1)
+print(sys.argv)
 model = sys.argv[1]
 # model = r'C:\fsu\class\thesis\token.txt.bin'
 vocFile=sys.argv[2]
@@ -365,9 +380,11 @@ otherVocab = "" if len(sys.argv) < 8 else sys.argv[7].strip()
 isIntersectVacab = False if len(sys.argv) < 9 else sys.argv[8].strip().lower()=="intersection"
 sample = 0 if len(sys.argv) < 10 else float(sys.argv[9])
 
+isBin = model.strip().endswith('bin')
+
 evalVocab = get_evaluation_vocab(vocFile,otherVocab,isIntersectVacab)
 print("evalVocab isIntersectVacab=%s, vocab number is %d" % (str(isIntersectVacab), len(evalVocab)))
-wv = gensim.models.KeyedVectors.load_word2vec_format(model,fvocab=vocFile,binary=True)
+wv = gensim.models.KeyedVectors.load_word2vec_format(model,fvocab=vocFile,binary=isBin)
 termList = accuracy_rel(wv,relfile,gensim.models.KeyedVectors.most_similar,topn=topn,usePhrase=usePhrase,sample=sample)
 evaluation_rel = EvaluateRelation(termList,topn=topn)
 # print("### result start: ###")
