@@ -27,7 +27,7 @@ e.g. analogy relation. While a general question "what kind of semantic relation 
 ![analogy top 5](materials/wdgpn-accuracy-top5-analogy.jpg)
 
 ### Semantic relation task @ Word2vec
-![relation @ Word2vec](meterials/word2vec-relation.jpg)
+![relation @ Word2vec](materials/word2vec-relation.jpg)
 
 ### Semantic relation @ top 5
 ![relation top 5](materials/wdgpn-hit_cnt_term_pct-top5-relation.jpg)
