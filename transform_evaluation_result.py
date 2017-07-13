@@ -59,6 +59,13 @@ def transpose(value):
         for i in range(0,row_n):
             new_val[j].append(value[i][j])
     return new_val
+def addAverageRow(value,rowName):
+    rowName.append('Average')
+    avgRow = [0 for _ in range(0,len(value[0]))]
+    for j in range(0,len(value[0])):
+        for i in range(0,len(value)):
+            avgRow[j] += value[i][j] * 1.0 / len(value)
+    value.append(avgRow)
 
 def get_relation_data_file(retFile, startString):
     value = []
@@ -103,6 +110,7 @@ def get_relation_data(retFile,isRelation=False):
             (value,colname,rowname) = get_relation_data_file(fn,'Evaluation:')
             rowname,colname = colname,rowname
             value = transpose(value)
+            addAverageRow(value,rowname)
         else:
             (value,colname,rowname) = get_relation_data_file(fn,'section\t')
         rr.colName = colname
@@ -224,15 +232,13 @@ def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
     f = plt.figure()
     # fig, ax = plt.subplots()
     bar_width = (1-0.2)/len(methods)
+    max_height = 30
     opacity = 0.8
     colors = cm.jet(np.linspace(0, 1, len(methods)))
-    if isRelation:
-        plt.ylim([0,70])
-    else:
-        plt.ylim([0,110])
     for i,m in enumerate(methods):
         col = rr.colName.index(colName[0]) + 3
         row,method_list,task_list,topn_list = get_row(rr.value, [m], '*', topN, col)
+        max_height = max(max_height,max(row)+10)
         n_groups = len(task_list)
         index = np.arange(n_groups)
         plt.bar(index + i*bar_width, row, bar_width,
@@ -244,6 +250,11 @@ def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
 
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.ylim([0,max_height])
+    # if isRelation:
+    #     plt.ylim([0,70])
+    # else:
+    #     plt.ylim([0,110])
     # plt.title('Analogy tasks performance of Word2vec')
     for i in range(0,len(task_list)):
         if len(task_list[i]) >= 15:

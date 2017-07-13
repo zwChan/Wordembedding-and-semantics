@@ -180,9 +180,11 @@ freq = np.array([x[1] for x in vocab])
 areas = np.pi * (np.log(freq) - np.log(np.min(freq)) + 1)**2
 
 plt.figure(dpi=500,figsize=(10,6))
-plt.ylim([np.min(points[:,1])-0.3,np.max(points[:,1])+0.5])
-plt.xlim([np.min(points[:,0])-0.3,np.max(points[:,0])+1])
-
+# plt.ylim([np.min(points[:,1])-0.3,np.max(points[:,1])+0.5])
+# plt.xlim([np.min(points[:,0])-0.3,np.max(points[:,0])+1])
+# tighter
+plt.ylim([np.min(points[:,1]),np.max(points[:,1])-0.5])
+plt.xlim([np.min(points[:,0])+0.3,np.max(points[:,0])-0.5])
 
 areas = [max(x) for  x in zip(areas,rel_areas)]
 colors = [default_color if c == -1 else c for c in rel_colors]
