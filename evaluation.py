@@ -127,8 +127,7 @@ class Term:
             simMap[kv[0]] = kv[1]
         return simMap
 
-def phrase2word(w2v,phrase,strict_match=True):
-    global evalVocab
+def phrase2word(w2v,phrase,evalVocab,strict_match=True):
     term_norm_estimate = []
     miss = False
     for t in phrase.split('_'):
@@ -142,7 +141,7 @@ def phrase2word(w2v,phrase,strict_match=True):
 
 def estimate_phrase(w2v,phrase,most_similar_f,topn=1):
     rel_estimate = []
-    rel_words = phrase2word(w2v,phrase)
+    rel_words = phrase2word(w2v,phrase,evalVocab)
     try:
         rel_estimate_ret = most_similar_f(w2v,rel_words,topn=topn)
         rel_estimate = [kv[0] for kv in rel_estimate_ret]
@@ -151,8 +150,7 @@ def estimate_phrase(w2v,phrase,most_similar_f,topn=1):
     return rel_estimate
 
 
-def safe_phrase(w2v,phrase,most_similar_f):
-    global evalVocab
+def safe_phrase(w2v,phrase,most_similar_f,evalVocab):
     if phrase in w2v.vocab:
         return [phrase]
     elif phrase in evalVocab and '_' in phrase:
@@ -162,6 +160,9 @@ def safe_phrase(w2v,phrase,most_similar_f):
     else:
         return []
 
+'''
+  term is the evaluation term
+'''
 def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
     term_norm = term.relValue[term.NormIndex][0] if len(term.relValue[term.NormIndex]) > 0 else ""
     try:
@@ -185,7 +186,7 @@ def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
     for rels in term.relValue:
         hitTerms = []
         for rel in rels:
-            if rel in wv.vocab:
+            if rel in w2v.vocab:
                 if rel in simMap:
                     hitTerms.append(rel)
             elif '_' in rel:  # use the average vector of words in phrase to estimate the phrase
@@ -204,8 +205,7 @@ def term_similar(w2v, term,  most_similar_f, topn,restrict_vocab=30000):
 '''
     sample: use part of the evaluation data, for test only
 '''
-def accuracy_rel(w2v, csvfile,most_similar_f, topn=10, restrict_vocab=30000,case_insensitive=True, usePhrase=True,sample=0):
-    global evalVocab
+def accuracy_rel(w2v, csvfile,most_similar_f, evalVocab, topn=10, restrict_vocab=30000,case_insensitive=True, usePhrase=True,sample=0):
     termList = []
     with open(csvfile, 'rb') as csvfile:
         csvreader = csv.reader(csvfile, delimiter='\t', quotechar='"')
@@ -242,7 +242,7 @@ def accuracy_rel(w2v, csvfile,most_similar_f, topn=10, restrict_vocab=30000,case
                 print("term(%s) found no similar term, ignored " % (term.name), file=sys.stderr)
     return termList
 
-def accuracy_analogy(wv, questions, most_similar, topn=10, case_insensitive=True,usePhrase=True, sample=0):
+def accuracy_analogy(wv, questions, most_similar, evalVocab, topn=10, case_insensitive=True,usePhrase=True, sample=0):
     """
     Compute accuracy of the model. `questions` is a filename where lines are
     4-tuples of words, split into sections by ": SECTION NAME" lines.
@@ -265,7 +265,6 @@ def accuracy_analogy(wv, questions, most_similar, topn=10, case_insensitive=True
     This method corresponds to the `compute-accuracy` script of the original C word2vec.
 
     """
-    global evalVocab
     self=wv
     ok_vocab = self.vocab
     ok_vocab = dict((w.lower(), v) for w, v in ok_vocab.items()) if case_insensitive else ok_vocab
@@ -296,10 +295,10 @@ def accuracy_analogy(wv, questions, most_similar, topn=10, case_insensitive=True
 
             original_vocab = self.vocab
             self.vocab = ok_vocab
-            a2 = safe_phrase(wv,a,most_similar)
-            b2 = safe_phrase(wv,b,most_similar)
-            c2 = safe_phrase(wv,c,most_similar)
-            expected2 = safe_phrase(wv,expected,most_similar)
+            a2 = safe_phrase(wv,a,most_similar,evalVocab)
+            b2 = safe_phrase(wv,b,most_similar,evalVocab)
+            c2 = safe_phrase(wv,c,most_similar,evalVocab)
+            expected2 = safe_phrase(wv,expected,most_similar,evalVocab)
             if len(a2)==0 or len(b2)==0 or len(c2)==0 or len(expected2)==0:
                 print("skipping line in %s with OOV words: %s" % (section['section'], line.strip()), file=sys.stderr)
                 print(a2,b2,c2,expected2,file=sys.stderr)
@@ -362,40 +361,47 @@ def get_evaluation_vocab(vocFile,otherVocab,isIntersectVacab=False):
             evalVocab |= vocab
     return evalVocab
 
+def output_detail_relation_result(termList, outfile):
+    with open(outfile,'w+') as of:
+        print("%s\tNearestNeighbors" % ('\t'.join(termList[0].relName)),file=of)
+        for i,term in enumerate(termList):
+            print("%s\t%s" % ('\t'.join([','.join(rel) if k > Term.NormIndex else ''.join(term.relValue[k]) for k, rel in enumerate(term.relHit)]),','.join([x[0] for x in term.similar])),file=of)
+
 # --------------------------------------------------------------------------------
-if len(sys.argv) < 5:
-    print("Usage: [model-file] [vocab-file] [analogy-file] [relation-file] [top-n] [usePhrase(True|False)] [otherVocab(from the model to compare] [union|intersection] [sample(test)]",file=sys.stderr)
-    exit(1)
-print(sys.argv)
-model = sys.argv[1]
-# model = r'C:\fsu\class\thesis\token.txt.bin'
-vocFile=sys.argv[2]
-# vocFile = r'C:\fsu\class\thesis\token.txt.voc'
-analogyfile = sys.argv[3]
-# qfile = r'C:\fsu\ra\data\201706\synonym_ret.csv'
-relfile = sys.argv[4]
-topn = 10 if len(sys.argv) < 6 else int(sys.argv[5])
-usePhrase = True if len(sys.argv) < 7 else sys.argv[6].strip().lower()!='false'  # True unless specify false
-otherVocab = "" if len(sys.argv) < 8 else sys.argv[7].strip()
-isIntersectVacab = False if len(sys.argv) < 9 else sys.argv[8].strip().lower()=="intersection"
-sample = 0 if len(sys.argv) < 10 else float(sys.argv[9])
+if __name__ == "__main__":
+    if len(sys.argv) < 5:
+        print("Usage: [model-file] [vocab-file] [analogy-file] [relation-file] [top-n] [usePhrase(True|False)] [otherVocab(from the model to compare] [union|intersection] [sample(test)]",file=sys.stderr)
+        exit(1)
+    print(sys.argv)
+    model = sys.argv[1]
+    # model = r'C:\fsu\class\thesis\token.txt.bin'
+    vocFile=sys.argv[2]
+    # vocFile = r'C:\fsu\class\thesis\token.txt.voc'
+    analogyfile = sys.argv[3]
+    # qfile = r'C:\fsu\ra\data\201706\synonym_ret.csv'
+    relfile = sys.argv[4]
+    topn = 10 if len(sys.argv) < 6 else int(sys.argv[5])
+    usePhrase = True if len(sys.argv) < 7 else sys.argv[6].strip().lower()!='false'  # True unless specify false
+    otherVocab = "" if len(sys.argv) < 8 else sys.argv[7].strip()
+    isIntersectVacab = False if len(sys.argv) < 9 else sys.argv[8].strip().lower()=="intersection"
+    sample = 0 if len(sys.argv) < 10 else float(sys.argv[9])
 
-isBin = model.strip().endswith('bin')
+    isBin = model.strip().endswith('bin')
 
-evalVocab = get_evaluation_vocab(vocFile,otherVocab,isIntersectVacab)
-print("evalVocab isIntersectVacab=%s, vocab number is %d" % (str(isIntersectVacab), len(evalVocab)))
-wv = gensim.models.KeyedVectors.load_word2vec_format(model,fvocab=vocFile,binary=isBin)
-termList = accuracy_rel(wv,relfile,gensim.models.KeyedVectors.most_similar,topn=topn,usePhrase=usePhrase,sample=sample)
-evaluation_rel = EvaluateRelation(termList,topn=topn)
-# print("### result start: ###")
-# evaluation.PrintHitList()
-# print("#### evaluation result ###")
-evaluation_rel.evaluate()
-print(evaluation_rel)
+    evalVocab = get_evaluation_vocab(vocFile,otherVocab,isIntersectVacab)
+    print("evalVocab isIntersectVacab=%s, vocab number is %d" % (str(isIntersectVacab), len(evalVocab)))
+    wv = gensim.models.KeyedVectors.load_word2vec_format(model,fvocab=vocFile,binary=isBin)
+    termList = accuracy_rel(wv,relfile,gensim.models.KeyedVectors.most_similar,evalVocab,topn=topn,usePhrase=usePhrase,sample=sample)
+    evaluation_rel = EvaluateRelation(termList,topn=topn)
+    # print("### result start: ###")
+    # evaluation.PrintHitList()
+    # print("#### evaluation result ###")
+    evaluation_rel.evaluate()
+    print(evaluation_rel)
 
-analogyList = accuracy_analogy(wv,analogyfile,gensim.models.KeyedVectors.most_similar,topn=topn, usePhrase=usePhrase,sample=sample)
-evaluation_analogy = EvaluateAnalogy(analogyList,topn=topn)
-print(evaluation_analogy)
+    analogyList = accuracy_analogy(wv,analogyfile,gensim.models.KeyedVectors.most_similar,evalVocab,topn=topn, usePhrase=usePhrase,sample=sample)
+    evaluation_analogy = EvaluateAnalogy(analogyList,topn=topn)
+    print(evaluation_analogy)
 
 
 

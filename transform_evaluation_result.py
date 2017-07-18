@@ -218,9 +218,9 @@ def fig_method_topn(rr,method,colName,topN,xlabel,ylabel):
     plt.tight_layout()
     # plt.show()
     if isRelation:
-        savename = "%s-relation.jpg" % method
+        savename = "%s-%s-relation.jpg" % (method,colName)
     else:
-        savename = "%s-analogy.jpg" % method
+        savename = "%s-%s-analogy.jpg" % (method,colName)
 
     f.savefig(savename, bbox_inches='tight', dpi=200)
     plt.close()
@@ -284,6 +284,7 @@ topns = sorted(topns)
 for m in methods:
     if isRelation:
         fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)')
+        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)')
     else:
         fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)')
 
