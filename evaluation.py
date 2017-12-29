@@ -153,7 +153,8 @@ def estimate_phrase(w2v,phrase,most_similar_f,topn=1):
 def safe_phrase(w2v,phrase,most_similar_f,evalVocab):
     if phrase in w2v.vocab:
         return [phrase]
-    elif phrase in evalVocab and '_' in phrase:
+    # elif phrase in evalVocab and '_' in phrase:
+    elif '_' in phrase:
         ret = estimate_phrase(w2v,phrase,most_similar_f,topn=1)
         print("phrase (%s) estimate to (%s)" % (phrase, ret),file=sys.stderr)
         return ret

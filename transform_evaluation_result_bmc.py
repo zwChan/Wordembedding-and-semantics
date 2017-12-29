@@ -291,15 +291,16 @@ for m in methods:
 #### method compaire on unigram
 for topn in topN:
     if isRelation:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)')
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)')
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
     else:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
-
-#### method compaire on phrases
-for topn in topN:
-    if isRelation:
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)')
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','weighted Retrieved ratio (%)')
-    else:
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+        # fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+#
+# #### method compaire on phrases
+# for topn in topN:
+#     if isRelation:
+#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)')
+#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
+#     else:
+#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
