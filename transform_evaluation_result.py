@@ -128,7 +128,7 @@ print(sys.argv,file=sys.stderr)
 np.set_printoptions(precision=2,linewidth=120,suppress=True)
 input_file = sys.argv[1]
 isRelation = sys.argv[2].lower()=='relation'
-# wordset_file = sys.argv[3]
+res_tag = sys.argv[3] if len(sys.argv) > 3 else ""
 rr = get_relation_data(input_file, isRelation)
 print(rr)
 
@@ -179,7 +179,7 @@ PATTERN = ('///', '.', '*', '\\\\',  'o')
 '''
 method-analogy
 '''
-topN = [1,5,20,100]
+topN = [1,5, 10,20,100]
 # tag = 'word2vec'
 # task = ["capital-common-countries", "capital-world", "currency", "city-in-state", "family","airlines"]
 
@@ -218,9 +218,9 @@ def fig_method_topn(rr,method,colName,topN,xlabel,ylabel):
     plt.tight_layout()
     # plt.show()
     if isRelation:
-        savename = "%s-%s-relation.jpg" % (method,colName)
+        savename = "%s-%s%s-relation.jpg" % (method,colName, res_tag)
     else:
-        savename = "%s-%s-analogy.jpg" % (method,colName)
+        savename = "%s-%s%s-analogy.jpg" % (method,colName,res_tag)
 
     f.savefig(savename, bbox_inches='tight', dpi=200)
     plt.close()
@@ -265,9 +265,9 @@ def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
     plt.tight_layout()
     # plt.show()
     if isRelation:
-        savename = "%s-%s-top%d-relation.jpg" % (''.join([x[0] for x in methods]),colName[0],topN[0])
+        savename = "%s-%s-top%d%s-relation.jpg" % (''.join([x[0] for x in methods]),colName[0],topN[0],res_tag)
     else:
-        savename = "%s-%s-top%d-analogy.jpg" % (''.join([x[0] for x in methods]),colName[0],topN[0])
+        savename = "%s-%s-top%d%s-analogy.jpg" % (''.join([x[0] for x in methods]),colName[0],topN[0],res_tag)
 
     f.savefig(savename, bbox_inches='tight', dpi=200)
     plt.close()
@@ -300,6 +300,6 @@ for topn in topN:
 for topn in topN:
     if isRelation:
         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)')
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','weighted Retrieved ratio (%)')
+        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
     else:
         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
