@@ -29,23 +29,23 @@ topns = sorted(topns)
 #### method detial vs topn performance
 for m in methods:
     if isRelation:
-        fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)')
-        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)')
+        fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)', isRelation, res_tag)
+        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)', isRelation, res_tag)
     else:
-        fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)')
+        fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)', isRelation, res_tag)
 
 #### method compaire on unigram
 for topn in topN:
     if isRelation:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)')
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
+        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)', isRelation, res_tag)
+        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)', isRelation, res_tag)
     else:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
-#
-# #### method compaire on phrases
-# for topn in topN:
-#     if isRelation:
-#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)')
-#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
-#     else:
-#         fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+        fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)
+
+#### method compaire on phrases
+for topn in topN:
+    if isRelation:
+        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)', isRelation, res_tag)
+        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)', isRelation, res_tag)
+    else:
+        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)

@@ -28,16 +28,16 @@ topns = sorted(topns)
 #### method detial vs topn performance
 for m in methods:
     if isRelation:
-        fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)')
-        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)')
+        fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)', isRelation, res_tag)
+        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)', isRelation, res_tag)
     else:
-        fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)')
+        fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)', isRelation, res_tag)
 
 #### method compaire on unigram
 for topn in topN:
     if isRelation:
-        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)')
-        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)', isRelation, res_tag)
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)', isRelation, res_tag)
     else:
-        # fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
-        fig_compare_methods(rr,['health-articles','sampled-articles'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+        # fig_compare_methods(rr,['word2vec','deps-word2vec','glove'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)
+        fig_compare_methods(rr,['health-articles','sampled-articles'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)

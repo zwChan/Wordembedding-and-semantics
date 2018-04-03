@@ -120,18 +120,6 @@ def get_relation_data(retFile,isRelation=False):
 
     return rr
 
-
-if len(sys.argv) < 2:
-    print("Usage: [input_file.csv] [relation|analogy")
-    exit(1)
-print(sys.argv,file=sys.stderr)
-np.set_printoptions(precision=2,linewidth=120,suppress=True)
-input_file = sys.argv[1]
-isRelation = sys.argv[2].lower()=='relation'
-res_tag = sys.argv[3] if len(sys.argv) > 3 else ""
-rr = get_relation_data(input_file, isRelation)
-print(rr)
-
 '''
 Return a new array that its elements are unique and keep their order.
 '''
@@ -183,20 +171,18 @@ topN = [1,5, 10,20,100]
 # tag = 'word2vec'
 # task = ["capital-common-countries", "capital-world", "currency", "city-in-state", "family","airlines"]
 
-def fig_method_topn(rr,method,colName,topN,xlabel,ylabel):
+def fig_method_topn(rr,method,colName,topN,xlabel,ylabel, isRelation, res_tag):
     # create plot
     f = plt.figure()
     # fig, ax = plt.subplots()
     bar_width = (1-0.2)/len(topN)
     opacity = 0.8
     colors = cm.jet(np.linspace(0, 1, len(topN)))
-    if isRelation:
-        plt.ylim([0,90])
-    else:
-        plt.ylim([0,110])
+    y_max = 30
     for i,topn in enumerate(topN):
         col = rr.colName.index(colName) + 3
         row,method_list,task_list,topn_list = get_row(rr.value, [method], '*', [topn], col)
+        y_max = max(y_max, max(row)+10)
         n_groups = len(task_list)
         index = np.arange(n_groups)
         plt.bar(index + i*bar_width, row, bar_width,
@@ -206,6 +192,8 @@ def fig_method_topn(rr,method,colName,topN,xlabel,ylabel):
                          hatch=PATTERN[i],
                          label='top %d' % topn)
 
+
+    plt.ylim([0,y_max])
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     # plt.title('Analogy tasks performance of Word2vec')
@@ -222,12 +210,12 @@ def fig_method_topn(rr,method,colName,topN,xlabel,ylabel):
     else:
         savename = "%s-%s%s-analogy.jpg" % (method,colName,res_tag)
 
-    f.savefig(savename, bbox_inches='tight', dpi=200)
+    f.savefig(savename, bbox_inches='tight', dpi=400)
     plt.close()
     print("save image %s" % savename)
 
 
-def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
+def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel, isRelation, res_tag):
     # create plot
     f = plt.figure()
     # fig, ax = plt.subplots()
@@ -238,6 +226,9 @@ def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
     for i,m in enumerate(methods):
         col = rr.colName.index(colName[0]) + 3
         row,method_list,task_list,topn_list = get_row(rr.value, [m], '*', topN, col)
+        if not row:
+            print('found no data for method %s,topn %s,col %s'%(m,str(topN), col))
+            return
         max_height = max(max_height,max(row)+10)
         n_groups = len(task_list)
         index = np.arange(n_groups)
@@ -269,37 +260,49 @@ def fig_compare_methods(rr,methods,colName,topN,xlabel,ylabel):
     else:
         savename = "%s-%s-top%d%s-analogy.jpg" % (''.join([x[0] for x in methods]),colName[0],topN[0],res_tag)
 
-    f.savefig(savename, bbox_inches='tight', dpi=200)
+    f.savefig(savename, bbox_inches='tight', dpi=400)
     plt.close()
     print("save image %s" % savename)
 
 
-#################################################
-value,methods,tasks,topns = get_row(rr.value,'*','*','*','*')
-methods = methods
-tasks = tasks
-topns = sorted(topns)
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: [input_file.csv] [relation|analogy")
+        exit(1)
+    print(sys.argv,file=sys.stderr)
+    np.set_printoptions(precision=2,linewidth=120,suppress=True)
+    input_file = sys.argv[1]
+    isRelation = sys.argv[2].lower()=='relation'
+    res_tag = sys.argv[3] if len(sys.argv) > 3 else ""
+    rr = get_relation_data(input_file, isRelation)
+    print(rr)
 
-#### method detial vs topn performance
-for m in methods:
-    if isRelation:
-        fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)')
-        fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)')
-    else:
-        fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)')
+    #################################################
+    value,methods,tasks,topns = get_row(rr.value,'*','*','*','*')
+    methods = methods
+    tasks = tasks
+    topns = sorted(topns)
 
-#### method compaire on unigram
-for topn in topN:
-    if isRelation:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)')
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
-    else:
-        fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+    #### method detial vs topn performance
+    for m in methods:
+        if isRelation:
+            fig_method_topn(rr,m,'hit_cnt_term_pct',topns,'Semantic relation tasks','Retrieved terms ratio (%)', isRelation, res_tag)
+            fig_method_topn(rr,m,'hit_weight_term_pct',topns,'Semantic relation tasks','Weighted Retrieved terms ratio (%)', isRelation, res_tag)
+        else:
+            fig_method_topn(rr,m,'accuracy',topns,'Analogy tasks','Accuracy (%)', isRelation)
 
-#### method compaire on phrases
-for topn in topN:
-    if isRelation:
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)')
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)')
-    else:
-        fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)')
+    #### method compaire on unigram
+    for topn in topN:
+        if isRelation:
+            fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved Ratio (%)', isRelation, res_tag)
+            fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)', isRelation, res_tag)
+        else:
+            fig_compare_methods(rr,['word2vec','deps-word2vec','glove','phrase4word','norm'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)
+
+    #### method compaire on phrases
+    for topn in topN:
+        if isRelation:
+            fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_cnt_term_pct'],[topn],'Semantic relation tasks','Retrieved ratio (%)', isRelation, res_tag)
+            fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['hit_weight_term_pct'],[topn],'Semantic relation tasks','Weighted Retrieved ratio (%)', isRelation, res_tag)
+        else:
+            fig_compare_methods(rr,['linear-estimate','word2phrase','ner'],['accuracy'],[topn],'Analogy tasks','Accuracy (%)', isRelation, res_tag)
