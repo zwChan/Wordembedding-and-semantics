@@ -41,3 +41,4 @@ e.g. analogy relation. While a general question "what kind of semantic relation 
 ### Semantic relation phrase composition
 ![phrase relation top 5](materials/lwn-hit_weight_term_pct-top5-relation.jpg)
 
+Related data: [Google Drive sharing link](https://drive.google.com/open?id=0Bze8dEz4G92GOFRsYlZJdHNHRDA)
