@@ -1,4 +1,4 @@
-# Wordembedding-and-semantics
+# Evaluating semantic relations in neural word embeddings with biomedical and general domain knowledge bases
 ## Abstract
 In the past few years, neural-network-based word embeddings have been widely used in text mining. However, the vector
 representations of word embeddings mostly act as a black box in downstream applications using them, thereby limiting
