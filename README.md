@@ -27,7 +27,7 @@ recommended to use domain-specific corpus to train word embeddings for domain-sp
 ## Figures
 
 ### Figure 1 gives concrete examples of these semantic relations
-![figure 1](materials/Figure1.jpg)
+![figure 1](materials/Figure1.png)
 
 ### Figure 2 shows the words faculty and loyalty and their top 10 nearest neighbors in the reduced word embedding space by Principal Component Analysis (PCA)
 ![figure 2](materials/Figure2.jpg)
@@ -36,24 +36,24 @@ recommended to use domain-specific corpus to train word embeddings for domain-sp
 ![figure 3](materials/Figure3.jpg)
 
 ### Figures 4 and 5 show the evaluation results of different types of word embeddings in the general and medical-related analogy term retrieval subtasks
-![figure 4](materials/Figure4.jpg)
-![figure 5](materials/Figure5.jpg)
+![figure 4](materials/Figure4.png)
+![figure 5](materials/Figure5.png)
 
 ### Figure 6 shows the detailed analogy task results when k = 5 for different embedding training methods
-![figure 6](materials/Figure6.jpg)
+![figure 6](materials/Figure6.png)
 
 ### Figure 7 and 8 investigated the retrieved ratio for top 1, 5, 20 and 100 nearest neighbors for each of the three kinds of word embeddings
-![figure 7](materials/Figure7.jpg)
-![figure 8](materials/Figure8.jpg)
+![figure 7](materials/Figure7.png)
+![figure 8](materials/Figure8.png)
 
 ### Figures 9 and 10 give a closer comparison among the methods when k=5
-![figure 9](materials/Figure9.jpg)
-![figure 10](materials/Figure10.jpg)
+![figure 9](materials/Figure9.png)
+![figure 10](materials/Figure10.png)
 
 ### Figure 11 shows that health related corpus and general corpus had the similar results in the analogy term retrieval task
-![figure 11](materials/Figure11.jpg)
+![figure 11](materials/Figure11.png)
 
 ### Figure 12 shows that health related corpus obtained slightly better result on general semantic relation retrieval task
-![figure 12](materials/Figure12.jpg)
+![figure 12](materials/Figure12.png)
 
 Related data: [Google Drive sharing link](https://drive.google.com/open?id=0Bze8dEz4G92GOFRsYlZJdHNHRDA)
